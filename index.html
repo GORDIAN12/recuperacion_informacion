@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buscador</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css" />
+  <script src="index.js" defer></script>
+</head>
+<body>
+
+<div class="contenedor">
+  <h1>Busca<span>dor</span></h1>
+
+  <div class="campo-entrada">
+    <div class="inputRow">
+      <input type="text" id="inputBuscador" autocomplete="off" placeholder="Escribe una película o canción...">
+    </div>
+
+    <div id="dropdown" class="dropdown" role="listbox" aria-label="Sugerencias">
+      <div class="dropdownHeader">
+        <span id="tituloDropdown">Coincidencias</span>
+        <span id="badge" class="badge"></span>
+      </div>
+      <ul id="lista" class="lista"></ul>
+    </div>
+
+    <!-- Mensaje (correcto / advertencia / error) -->
+    <div id="resultado" class="caja-mensaje"></div>
+  </div>
+</div>
+
+<div id="panel" class="panel">
+  <div class="panelInfo">
+    <img id="mediaImg" alt="" class="mediaImg"/>
+    <div>
+      <h2 id="mediaTitulo" class="mediaTitulo"></h2>
+      <p id="mediaMeta" class="mediaMeta"></p>
+      <button id="btnIniciar" class="btn">Iniciar</button>
+    </div>
+  </div>
+
+  <div class="panelProgreso">
+    <div class="barra">
+      <div id="barraFill" class="barraFill"></div>
+    </div>
+    <p id="tiempoTxt" class="tiempoTxt"></p>
+  </div>
+
+  <div id="panelFinal" class="panelFinal"></div>
+
+  <div id="relacionado" class="relacionado"></div>
+</div>
+
+</body>
+</html>
