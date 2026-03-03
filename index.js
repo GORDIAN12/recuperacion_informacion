@@ -1,3 +1,6 @@
+// ===============================
+// 1) BASE DE DATOS
+// ===============================
 const banco = [
   {
     id: 'sw4',
@@ -105,11 +108,10 @@ const banco = [
   },
 ];
 
-// Para que tu buscador siga trabajando con strings (títulos)
 const baseDeDatos = banco.map((x) => x.titulo);
 
 // ===============================
-// 2) HELPERS (TU MISMO ESTILO)
+// 2) ELEMENTOS DOM
 // ===============================
 const input = document.getElementById('inputBuscador');
 const dropdown = document.getElementById('dropdown');
@@ -117,29 +119,17 @@ const lista = document.getElementById('lista');
 const tituloDropdown = document.getElementById('tituloDropdown');
 const badge = document.getElementById('badge');
 const resultado = document.getElementById('resultado');
+const tipoAnalisis = document.getElementById('tipoAnalisis');
 
-// Panel
-const panel = document.getElementById('panel');
-const mediaImg = document.getElementById('mediaImg');
-const mediaTitulo = document.getElementById('mediaTitulo');
-const mediaMeta = document.getElementById('mediaMeta');
-const btnIniciar = document.getElementById('btnIniciar');
-const barraFill = document.getElementById('barraFill');
-const tiempoTxt = document.getElementById('tiempoTxt');
-const relacionadoBox = document.getElementById('relacionado');
-
-// estado dropdown
+// ===============================
+// 3) ESTADO
+// ===============================
 let sugerenciasActuales = [];
 let indiceActivo = -1;
 
-// estado “media”
-let seleccionActual = null;
-let timerId = null;
-let inicio = 0;
-let duracionSeg = 10;
-let yaTermino = false;
-let yaCalifico = false;
-
+// ===============================
+// 4) UTILIDADES
+// ===============================
 function normalizar(str) {
   return (str || '')
     .toLowerCase()
@@ -157,33 +147,30 @@ function escapeHtml(str) {
     .replaceAll("'", '&#039;');
 }
 
-function resaltarCoincidencia(textoOriginal, queryOriginal) {
-  const txtN = normalizar(textoOriginal);
-  const qN = normalizar(queryOriginal);
+function setTipoAnalisis(label, nivel) {
+  if (!tipoAnalisis) return;
 
-  if (!qN) return escapeHtml(textoOriginal);
+  tipoAnalisis.textContent = label;
+  tipoAnalisis.className = 'pill';
 
-  const idx = txtN.indexOf(qN);
-  if (idx === -1) return escapeHtml(textoOriginal);
-
-  // OJO: usamos el slice sobre el original. En la práctica funciona bien.
-  const antes = textoOriginal.slice(0, idx);
-  const match = textoOriginal.slice(idx, idx + queryOriginal.length);
-  const despues = textoOriginal.slice(idx + queryOriginal.length);
-
-  return `${escapeHtml(antes)}<mark>${escapeHtml(match)}</mark>${escapeHtml(despues)}`;
+  if (nivel === 'ok') tipoAnalisis.classList.add('pill-ok');
+  else if (nivel === 'warn') tipoAnalisis.classList.add('pill-warn');
+  else if (nivel === 'err') tipoAnalisis.classList.add('pill-err');
+  else tipoAnalisis.classList.add('pill-neutral');
 }
 
 function mostrarEstado(mensaje, claseCss) {
+  if (!resultado) return;
   resultado.className = `caja-mensaje ${claseCss || ''}`.trim();
   resultado.innerHTML = mensaje || '';
 }
 
 function mostrarDropdown() {
-  dropdown.classList.add('mostrar');
+  if (dropdown) dropdown.classList.add('mostrar');
 }
 
 function ocultarDropdown() {
+  if (!dropdown) return;
   dropdown.classList.remove('mostrar');
   lista.innerHTML = '';
   sugerenciasActuales = [];
@@ -197,13 +184,14 @@ function setActivo(i) {
   indiceActivo = i;
 }
 
+// ===============================
+// 5) VALIDACIONES
+// ===============================
 function esLexicamenteInvalido(texto) {
-  // solo letras/números/espacios/acentos/ñ
   return /[^a-zA-Z0-9 áéíóúÁÉÍÓÚñÑ]/.test(texto);
 }
 
 function esSintacticamenteInvalido(texto) {
-  // reglas: no empezar con número, no solo números, max 3 palabras
   if (/^\d/.test(texto)) return true;
   if (/^\d+$/.test(texto)) return true;
   const palabras = texto.split(' ').filter(Boolean);
@@ -211,7 +199,6 @@ function esSintacticamenteInvalido(texto) {
   return false;
 }
 
-// Levenshtein (para sugerir “quisiste decir”)
 function levenshtein(a, b) {
   a = normalizar(a);
   b = normalizar(b);
@@ -234,86 +221,71 @@ function levenshtein(a, b) {
 }
 
 // ===============================
-// 3) RENDER SUGERENCIAS (BUSCADOR)
+// 6) MOTOR DEL BUSCADOR
 // ===============================
 function renderCoincidencias(textoOriginal) {
   const texto = (textoOriginal || '').trim().replace(/\s+/g, ' ');
 
   if (!texto) {
+    setTipoAnalisis('—', 'neutral');
     mostrarEstado('', '');
     ocultarDropdown();
-    panel.style.display = 'none'; // opcional: oculta panel si borras
     return;
   }
 
-  // Léxico
   if (esLexicamenteInvalido(texto)) {
+    setTipoAnalisis('Error léxico', 'err');
     mostrarEstado('Error léxico: caracteres inválidos.', 'texto-error');
     ocultarDropdown();
     return;
   }
 
-  // Sintaxis
   if (esSintacticamenteInvalido(texto)) {
-    mostrarEstado(
-      'Error sintáctico: formato inválido (máx 3 palabras, no iniciar con número).',
-      'texto-error',
-    );
+    setTipoAnalisis('Error sintáctico', 'err');
+    mostrarEstado('Error sintáctico: formato inválido.', 'texto-error');
     ocultarDropdown();
     return;
   }
 
-  // Exacta
   const exacta = baseDeDatos.find((x) => normalizar(x) === normalizar(texto));
   if (exacta) {
+    setTipoAnalisis('Correcto', 'ok');
     mostrarEstado(
       `Correcto: "<strong>${escapeHtml(exacta)}</strong>" encontrada.`,
       'texto-correcto',
     );
     ocultarDropdown();
-    abrirPanelPorTitulo(exacta);
     return;
   }
 
   const qN = normalizar(texto);
 
-  // 1) prefijo
   let sugerencias = baseDeDatos
     .filter((x) => normalizar(x).startsWith(qN))
     .slice(0, 8);
 
-  let modo = 'prefijo';
-
-  // 2) contiene
   if (sugerencias.length === 0) {
     sugerencias = baseDeDatos
       .filter((x) => normalizar(x).includes(qN))
       .slice(0, 8);
-    modo = 'contiene';
   }
 
-  // si hay sugerencias
   if (sugerencias.length > 0) {
+    setTipoAnalisis('Buscando…', 'warn');
+
     sugerenciasActuales = sugerencias;
     lista.innerHTML = '';
-
-    tituloDropdown.textContent =
-      modo === 'prefijo' ? 'Coincidencias' : 'Coincidencias (contiene)';
-    badge.textContent = String(sugerencias.length);
+    badge.textContent = sugerencias.length;
 
     sugerencias.forEach((sug, idx) => {
       const li = document.createElement('li');
       li.className = 'item';
-      li.setAttribute('role', 'option');
-      li.innerHTML = `<span class="label">${resaltarCoincidencia(sug, texto)}</span>`;
-
+      li.innerHTML = sug;
       li.addEventListener('mouseenter', () => setActivo(idx));
-
       li.addEventListener('mousedown', (e) => {
         e.preventDefault();
         seleccionar(idx);
       });
-
       lista.appendChild(li);
     });
 
@@ -327,9 +299,8 @@ function renderCoincidencias(textoOriginal) {
     return;
   }
 
-  // Semántico: “quisiste decir”
-  let mejor = null;
-  let mejorDist = Infinity;
+  let mejor = null,
+    mejorDist = Infinity;
   for (const item of baseDeDatos) {
     const d = levenshtein(texto, item);
     if (d < mejorDist) {
@@ -339,13 +310,15 @@ function renderCoincidencias(textoOriginal) {
   }
 
   if (mejor && mejorDist <= 2) {
+    setTipoAnalisis('Casi', 'warn');
     mostrarEstado(
-      `No encontré coincidencias. ¿Quisiste decir "<strong>${escapeHtml(mejor)}</strong>"?`,
+      `¿Quisiste decir "<strong>${escapeHtml(mejor)}</strong>"?`,
       'texto-advertencia',
     );
   } else {
+    setTipoAnalisis('Error semántico', 'err');
     mostrarEstado(
-      `Error semántico: "<strong>${escapeHtml(texto)}</strong>" no tiene significado en el banco.`,
+      `Error semántico: "<strong>${escapeHtml(texto)}</strong>" no existe.`,
       'texto-error',
     );
   }
@@ -356,201 +329,41 @@ function renderCoincidencias(textoOriginal) {
 function seleccionar(i) {
   const val = sugerenciasActuales[i];
   if (!val) return;
-
   input.value = val;
   ocultarDropdown();
+  setTipoAnalisis('Correcto', 'ok');
   mostrarEstado(
     `Correcto: "<strong>${escapeHtml(val)}</strong>" encontrada.`,
     'texto-correcto',
   );
-
-  abrirPanelPorTitulo(val);
 }
 
-function clamp(n, min, max) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function detenerTimer() {
-  if (timerId) clearInterval(timerId);
-  timerId = null;
-}
-
-function abrirPanelPorTitulo(titulo) {
-  const item = banco.find((x) => normalizar(x.titulo) === normalizar(titulo));
-  if (!item) return;
-
-  seleccionActual = item;
-  yaTermino = false;
-  yaCalifico = false;
-
-  relacionadoBox.innerHTML = ''; // relacionado vacío al seleccionar
-  barraFill.style.width = '0%';
-  tiempoTxt.textContent = '';
-
-  panel.style.display = 'block';
-
-  mediaImg.src = item.img || '';
-  mediaImg.style.display = item.img ? 'block' : 'none';
-  mediaTitulo.textContent = item.titulo;
-  mediaMeta.textContent = `${item.tipo.toUpperCase()} · tags: ${item.tags.join(', ')}`;
-}
-
-function iniciarTimer() {
-  if (!seleccionActual) return;
-
-  detenerTimer();
-  yaTermino = false;
-  yaCalifico = false;
-
-  // tiempo fijo del sistema
-  duracionSeg = seleccionActual.duracionSeg ?? 10; // fallback
-
-  inicio = Date.now();
-  panelFinal.innerHTML = '';
-  relacionadoBox.innerHTML = ''; // vacío mientras se reproduce
-
-  timerId = setInterval(() => {
-    const transcurrido = (Date.now() - inicio) / 1000;
-    const progreso = Math.min(transcurrido / duracionSeg, 1);
-
-    barraFill.style.width = `${Math.round(progreso * 100)}%`;
-    tiempoTxt.textContent = `Tiempo: ${Math.min(transcurrido, duracionSeg).toFixed(1)} / ${duracionSeg}s`;
-
-    if (progreso >= 1) {
-      detenerTimer();
-      finalizarConsumo();
-    }
-  }, 100);
-}
-
-function finalizarConsumo() {
-  yaTermino = true;
-
-  panelFinal.innerHTML = `
-    <strong>Te gusto lo que viste:</strong>
-    <div class="calif">
-      <button class="btnLike" data-like="1">Like</button>
-      <button class="btnLike" data-like="0">Dislike</button>
-    </div>
-    <p id="respuestaLike" class="respuestaLike"></p>
-  `;
-
-  const respuestaLike = document.getElementById('respuestaLike');
-
-  // Like / Dislike
-  panelFinal.querySelectorAll('.btnLike').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (!yaTermino) return;
-      yaCalifico = true;
-
-      const like = btn.dataset.like === '1';
-      respuestaLike.textContent = like
-        ? 'Te recomendamos esto: '
-        : 'No hay recomendaciones por el momento';
-
-      if (like) mostrarRelacionado(seleccionActual);
-      else ocultarRelacionado();
-    });
+// ===============================
+// 7) EVENTOS
+// ===============================
+if (input) {
+  input.addEventListener('input', (e) => {
+    renderCoincidencias(e.target.value);
   });
-}
 
-function ocultarRelacionado() {
-  relacionadoBox.innerHTML = `<p><strong>Relacionado:</strong> (no se muestran recomendaciones para esta calificación)</p>`;
-}
+  input.addEventListener('keydown', (e) => {
+    if (!dropdown.classList.contains('mostrar')) return;
 
-function compartirTags(a, b) {
-  const A = new Set(a.tags.map(normalizar));
-  return b.tags.some((t) => A.has(normalizar(t)));
-}
-
-function mostrarRelacionado(item) {
-  if (!yaCalifico) return;
-
-  const bucket = bucketTiempo(item.duracionSeg ?? 10);
-
-  const relacionados = banco
-    .filter((x) => x.id !== item.id)
-    // 1) misma categoría de duración
-    .filter((x) => bucketTiempo(x.duracionSeg ?? 10) === bucket)
-    // 2) orden por tags similares
-    .map((x) => ({
-      item: x,
-      score:
-        (compartirTags(item, x) ? 3 : 0) +
-        (x.tipo === item.tipo ? 1 : 0) +
-        (normalizar(item.titulo).includes('star wars') &&
-        normalizar(x.titulo).includes('star wars')
-          ? 2
-          : 0),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3)
-    .map((x) => x.item);
-
-  if (!relacionados.length) {
-    relacionadoBox.innerHTML = `<p><strong>Relacionado:</strong> (sin sugerencias para ${escapeHtml(bucket)})</p>`;
-    return;
-  }
-
-  relacionadoBox.innerHTML = `
-    <p><strong>Relacionado:</strong> (preferencia: ${escapeHtml(bucket)})</p>
-    <ul class="relList">
-      ${relacionados
-        .map(
-          (r) =>
-            `<li class="relItem">${escapeHtml(r.titulo)} <em>(${r.tipo})</em></li>`,
-        )
-        .join('')}
-    </ul>
-  `;
-}
-
-input.addEventListener('input', (e) => {
-  renderCoincidencias(e.target.value);
-});
-
-input.addEventListener('keydown', (e) => {
-  if (!dropdown.classList.contains('mostrar')) return;
-
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    const next = Math.min(indiceActivo + 1, sugerenciasActuales.length - 1);
-    setActivo(next);
-  }
-
-  if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    const prev = Math.max(indiceActivo - 1, 0);
-    setActivo(prev);
-  }
-
-  if (e.key === 'Enter') {
-    e.preventDefault();
-    if (indiceActivo >= 0) seleccionar(indiceActivo);
-  }
-
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    ocultarDropdown();
-  }
-});
-
-input.addEventListener('focus', () => {
-  if (input.value.trim()) renderCoincidencias(input.value);
-});
-
-document.addEventListener('mousedown', (e) => {
-  if (!e.target.closest('.campo-entrada')) {
-    ocultarDropdown();
-  }
-});
-
-// botón iniciar timer
-btnIniciar.addEventListener('click', iniciarTimer);
-
-function bucketTiempo(seg) {
-  if (seg <= 6) return 'corta';
-  if (seg <= 10) return 'mediana';
-  return 'larga';
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActivo(Math.min(indiceActivo + 1, sugerenciasActuales.length - 1));
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActivo(Math.max(indiceActivo - 1, 0));
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (indiceActivo >= 0) seleccionar(indiceActivo);
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      ocultarDropdown();
+    }
+  });
 }

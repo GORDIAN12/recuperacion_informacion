@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css" />
+</head>
+<body>
+
+  <header class="navbar scrolled">
+    <div class="nav-izq">
+      <h1 class="logo">Net<span>flix</span></h1>
+      <nav class="menu-principal">
+        <a href="index.html">Inicio</a>
+        <a href="catalogo.html?tipo=pelicula">Películas</a>
+        <a href="catalogo.html?tipo=serie">Series</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="contenedor-principal catalogo-espaciado">
+    <h2 id="tituloPagina" class="titulo-fila" style="font-size: 2rem; margin-bottom: 30px;">Catálogo</h2>
+    <div id="contenedorGrilla" class="grilla-catalogo">
+    </div>
+  </main>
+
+  <script>
+    const banco = [
+      { id: 'sw4', titulo: 'Star Wars: A New Hope', tipo: 'pelicula', tags: ['star wars', 'jedi', 'espacio', 'sci-fi'], duracionSeg: 6, img: 'imgs/st1.jpeg' },
+      { id: 'sw5', titulo: 'Star Wars: The Empire Strikes Back', tipo: 'pelicula', tags: ['star wars', 'jedi', 'espacio', 'sci-fi'], duracionSeg: 6, img: 'imgs/st2.jpg' },
+      { id: 'bladerunner', titulo: 'Blade Runner 2049', tipo: 'pelicula', tags: ['cyberpunk', 'sci-fi', 'futuro', 'neo-noir'], duracionSeg: 6, img: 'imgs/bl.jpeg' },
+      { id: 'interstellar', titulo: 'Interstellar', tipo: 'pelicula', tags: ['espacio', 'sci-fi', 'drama', 'viaje'], duracionSeg: 6, img: 'imgs/bh.jpg' },
+      { id: 'forrest_gump', titulo: 'Forrest Gump', tipo: 'pelicula', tags: ['drama', 'vida', 'historia', 'superacion'], duracionSeg: 6, img: 'imgs/for.webp' },
+      { id: 'el_conjuro', titulo: 'El Conjuro', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/cj.jpg' },
+      { id: 'anabelle', titulo: 'Anabelle', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/anabelle.jpg' },
+      { id: 'el_conjuro2', titulo: 'El Conjuro 2', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/cj.jpg' },
+      { id: 'mad_max_fury_road', titulo: 'Mad Max: Fury Road', tipo: 'pelicula', tags: ['accion', 'postapocaliptico', 'persecuciones', 'adrenalina'], duracionSeg: 6, img: 'imgs/md.jpg' },
+      { id: 'breaking_bad', titulo: 'Breaking Bad', tipo: 'serie', tags: ['drama', 'crimen', 'antiheroe', 'narcos'], duracionSeg: 12, img: 'imgs/bk.jpg' },
+      { id: 'better_call_saul', titulo: 'Better Call Saul', tipo: 'serie', tags: ['abogados', 'crimen', 'drama', 'spin-off'], duracionSeg: 12, img: 'imgs/saul.jpg' },
+      { id: 'the_sopranos', titulo: 'The Sopranos', tipo: 'serie', tags: ['mafia', 'crimen', 'drama', 'familia', 'antiheroe'], duracionSeg: 12, img: 'imgs/sopranos.jpg' },
+      { id: 'game_of_thrones', titulo: 'Game of Thrones', tipo: 'serie', tags: ['fantasia', 'politica', 'guerra', 'reinos', 'drama'], duracionSeg: 12, img: 'imgs/got.jpeg' }
+    ];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const tipoFiltro = urlParams.get('tipo');
+    const tituloPagina = document.getElementById('tituloPagina');
+    const contenedorGrilla = document.getElementById('contenedorGrilla');
+
+    if (tipoFiltro === 'pelicula') {
+      tituloPagina.textContent = 'Películas';
+    } else if (tipoFiltro === 'serie') {
+      tituloPagina.textContent = 'Series';
+    }
+
+    const resultados = tipoFiltro ? banco.filter(item => item.tipo === tipoFiltro) : banco;
+
+    if (resultados.length > 0) {
+      contenedorGrilla.innerHTML = resultados.map(p => `
+        <img src="${p.img}" alt="${p.titulo}" class="item-slider" onclick="window.location.href='reproductor.html?id=${p.id}'" style="width: 100%; height: auto; aspect-ratio: 2/3;">
+      `).join('');
+    } else {
+      contenedorGrilla.innerHTML = '<p>No se encontraron títulos en esta categoría.</p>';
+    }
+  </script>
+</body>
+</html>

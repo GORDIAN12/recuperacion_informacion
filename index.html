@@ -3,55 +3,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buscador</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <title>Netflix Clone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilos.css" />
   <script src="index.js" defer></script>
 </head>
 <body>
 
-<div class="contenedor">
-  <h1>Busca<span>dor</span></h1>
+<header class="navbar">
+  <div class="nav-izq">
+    <h1 class="logo">Net<span>flix</span></h1>
+    <nav class="menu-principal">
+      <a href="index.html" class="activo">Inicio</a>
+      <a href="catalogo.html?tipo=pelicula">Películas</a>
+      <a href="catalogo.html?tipo=serie">Series</a>
+    </nav>
+  </div>
 
-  <div class="campo-entrada">
-    <div class="inputRow">
-      <input type="text" id="inputBuscador" autocomplete="off" placeholder="Escribe una película o canción...">
-    </div>
+  <div class="nav-der">
+    <button id="theme-toggle" class="btn-theme" title="Cambiar tema">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon" style="display:none;">🌙</span>
+    </button>
 
-    <div id="dropdown" class="dropdown" role="listbox" aria-label="Sugerencias">
-      <div class="dropdownHeader">
-        <span id="tituloDropdown">Coincidencias</span>
-        <span id="badge" class="badge"></span>
+    <div class="campo-entrada">
+      <div class="inputRow">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <input type="text" id="inputBuscador" autocomplete="off" placeholder="Títulos, géneros...">
+        <div class="analizador">
+          <span id="tipoAnalisis" class="pill pill-neutral">—</span>
+        </div>
       </div>
-      <ul id="lista" class="lista"></ul>
-    </div>
 
-    <!-- Mensaje (correcto / advertencia / error) -->
-    <div id="resultado" class="caja-mensaje"></div>
+      <div id="dropdown" class="dropdown" role="listbox" aria-label="Sugerencias">
+        <div class="dropdownHeader">
+          <span id="tituloDropdown">Coincidencias</span>
+          <span id="badge" class="badge"></span>
+        </div>
+        <ul id="lista" class="lista"></ul>
+      </div>
+    </div>
   </div>
+</header>
+
+<div class="contenedor-mensajes">
+  <div id="resultado" class="caja-mensaje"></div>
 </div>
 
-<div id="panel" class="panel">
-  <div class="panelInfo">
-    <img id="mediaImg" alt="" class="mediaImg"/>
-    <div>
-      <h2 id="mediaTitulo" class="mediaTitulo"></h2>
-      <p id="mediaMeta" class="mediaMeta"></p>
-      <button id="btnIniciar" class="btn">Iniciar</button>
+<section class="hero" style="background-image: url('imgs/bl.jpeg');">
+  <div class="hero-vignette"></div>
+  <div class="hero-contenido">
+    <h2 class="hero-titulo">Blade Runner 2049</h2>
+    <p class="hero-sinopsis">
+      Un nuevo blade runner descubre un secreto largamente oculto que podría acabar con el caos que impera en la sociedad. El descubrimiento le lleva a iniciar la búsqueda de Rick Deckard.
+    </p>
+    <div class="hero-botones">
+      <button class="btn btn-blanco" onclick="window.location.href='reproductor.html?id=bladerunner'">
+        ▶ Reproducir
+      </button>
+      <button class="btn btn-gris">
+        ⓘ Más información
+      </button>
+    </div>
+  </div>
+</section>
+
+<main class="contenedor-principal">
+  <div class="fila-catalogo">
+    <h3 class="titulo-fila">Tendencias Ahora</h3>
+    <div class="slider-peliculas">
+      <img src="imgs/got.jpeg" alt="Game of Thrones" class="item-slider" onclick="window.location.href='reproductor.html?id=game_of_thrones'">
+      <img src="imgs/bk.jpg" alt="Breaking Bad" class="item-slider" onclick="window.location.href='reproductor.html?id=breaking_bad'">
+      <img src="imgs/saul.jpg" alt="Better Call Saul" class="item-slider" onclick="window.location.href='reproductor.html?id=better_call_saul'">
+      <img src="imgs/sopranos.jpg" alt="The Sopranos" class="item-slider" onclick="window.location.href='reproductor.html?id=the_sopranos'">
+      <img src="imgs/md.jpg" alt="Mad Max" class="item-slider" onclick="window.location.href='reproductor.html?id=mad_max_fury_road'">
     </div>
   </div>
 
-  <div class="panelProgreso">
-    <div class="barra">
-      <div id="barraFill" class="barraFill"></div>
+  <div class="fila-catalogo">
+    <h3 class="titulo-fila">Ciencia Ficción</h3>
+    <div class="slider-peliculas">
+      <img src="imgs/st2.jpg" alt="Star Wars" class="item-slider" onclick="window.location.href='reproductor.html?id=sw4'">
+      <img src="imgs/bh.jpg" alt="Interstellar" class="item-slider" onclick="window.location.href='reproductor.html?id=interstellar'">
+      <img src="imgs/bl.jpeg" alt="Blade Runner" class="item-slider" onclick="window.location.href='reproductor.html?id=bladerunner'">
     </div>
-    <p id="tiempoTxt" class="tiempoTxt"></p>
   </div>
-
-  <div id="panelFinal" class="panelFinal"></div>
-
-  <div id="relacionado" class="relacionado"></div>
-</div>
+</main>
 
 </body>
 </html>

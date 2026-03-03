@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reproductor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css" />
+  <style>
+    .reproductor-contenedor {
+      padding: 100px 4% 50px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .pantalla-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background-color: #000;
+      border-radius: 8px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+    }
+    .pantalla-video img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.3;
+      position: absolute;
+    }
+    .btn-play-gigante {
+      position: relative;
+      z-index: 2;
+      background: rgba(229, 9, 20, 0.9);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      font-size: 30px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding-left: 6px; 
+    }
+    .btn-play-gigante:hover {
+      transform: scale(1.1);
+      background: #e50914;
+    }
+    .info-reproduccion {
+      margin-top: 30px;
+    }
+    .titulo-pelicula {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    .meta-pelicula {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 25px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar scrolled">
+    <div class="nav-izq">
+      <h1 class="logo">Net<span>flix</span></h1>
+      <nav class="menu-principal">
+        <a href="index.html">Inicio</a>
+        <a href="catalogo.html?tipo=pelicula">Películas</a>
+        <a href="catalogo.html?tipo=serie">Series</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="reproductor-contenedor">
+    <div class="pantalla-video">
+      <img id="imagenFondo" src="" alt="Fondo" />
+      <button id="btnPlay" class="btn-play-gigante">▶</button>
+    </div>
+
+    <div class="info-reproduccion">
+      <h2 id="tituloReproductor" class="titulo-pelicula">Cargando...</h2>
+      <p id="metaReproductor" class="meta-pelicula"></p>
+
+      <div class="panelProgreso">
+        <div class="barra">
+          <div id="barraFill" class="barraFill"></div>
+        </div>
+        <p id="tiempoTxt" class="tiempoTxt"></p>
+      </div>
+
+      <div id="panelFinal" class="panelFinal"></div>
+      <div id="relacionado" class="relacionado"></div>
+    </div>
+  </main>
+
+  <script>
+    const banco = [
+      { id: 'sw4', titulo: 'Star Wars: A New Hope', tipo: 'pelicula', tags: ['star wars', 'jedi', 'espacio', 'sci-fi'], duracionSeg: 6, img: 'imgs/st1.jpeg' },
+      { id: 'sw5', titulo: 'Star Wars: The Empire Strikes Back', tipo: 'pelicula', tags: ['star wars', 'jedi', 'espacio', 'sci-fi'], duracionSeg: 6, img: 'imgs/st2.jpg' },
+      { id: 'bladerunner', titulo: 'Blade Runner 2049', tipo: 'pelicula', tags: ['cyberpunk', 'sci-fi', 'futuro', 'neo-noir'], duracionSeg: 6, img: 'imgs/bl.jpeg' },
+      { id: 'interstellar', titulo: 'Interstellar', tipo: 'pelicula', tags: ['espacio', 'sci-fi', 'drama', 'viaje'], duracionSeg: 6, img: 'imgs/bh.jpg' },
+      { id: 'forrest_gump', titulo: 'Forrest Gump', tipo: 'pelicula', tags: ['drama', 'vida', 'historia', 'superacion'], duracionSeg: 6, img: 'imgs/for.webp' },
+      { id: 'el_conjuro', titulo: 'El Conjuro', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/cj.jpg' },
+      { id: 'anabelle', titulo: 'Anabelle', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/anabelle.jpg' },
+      { id: 'el_conjuro2', titulo: 'El Conjuro 2', tipo: 'pelicula', tags: ['terror', 'paranormal', 'miedo', 'horror'], duracionSeg: 6, img: 'imgs/cj.jpg' },
+      { id: 'mad_max_fury_road', titulo: 'Mad Max: Fury Road', tipo: 'pelicula', tags: ['accion', 'postapocaliptico', 'persecuciones', 'adrenalina'], duracionSeg: 6, img: 'imgs/md.jpg' },
+      { id: 'breaking_bad', titulo: 'Breaking Bad', tipo: 'serie', tags: ['drama', 'crimen', 'antiheroe', 'narcos'], duracionSeg: 12, img: 'imgs/bk.jpg' },
+      { id: 'better_call_saul', titulo: 'Better Call Saul', tipo: 'serie', tags: ['abogados', 'crimen', 'drama', 'spin-off'], duracionSeg: 12, img: 'imgs/saul.jpg' },
+      { id: 'the_sopranos', titulo: 'The Sopranos', tipo: 'serie', tags: ['mafia', 'crimen', 'drama', 'familia', 'antiheroe'], duracionSeg: 12, img: 'imgs/sopranos.jpg' },
+      { id: 'game_of_thrones', titulo: 'Game of Thrones', tipo: 'serie', tags: ['fantasia', 'politica', 'guerra', 'reinos', 'drama'], duracionSeg: 12, img: 'imgs/got.jpeg' }
+    ];
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const idPelicula = urlParams.get('id');
+    const seleccionActual = banco.find(item => item.id === idPelicula);
+
+    const imagenFondo = document.getElementById('imagenFondo');
+    const tituloReproductor = document.getElementById('tituloReproductor');
+    const metaReproductor = document.getElementById('metaReproductor');
+    const btnPlay = document.getElementById('btnPlay');
+    const barraFill = document.getElementById('barraFill');
+    const tiempoTxt = document.getElementById('tiempoTxt');
+    const panelFinal = document.getElementById('panelFinal');
+    const relacionadoBox = document.getElementById('relacionado');
+
+    let timerId = null;
+    let yaTermino = false;
+    let yaCalifico = false;
+
+    if (seleccionActual) {
+      imagenFondo.src = seleccionActual.img;
+      tituloReproductor.textContent = seleccionActual.titulo;
+      metaReproductor.textContent = `${seleccionActual.tipo.toUpperCase()} · Etiquetas: ${seleccionActual.tags.join(', ')}`;
+    } else {
+      tituloReproductor.textContent = "Película no encontrada";
+      btnPlay.style.display = 'none';
+    }
+
+    function iniciarTimer() {
+      if (!seleccionActual || timerId) return;
+
+      btnPlay.style.display = 'none'; 
+      yaTermino = false;
+      yaCalifico = false;
+      panelFinal.innerHTML = '';
+      relacionadoBox.innerHTML = '';
+
+      const duracionSeg = seleccionActual.duracionSeg || 10;
+      const inicio = Date.now();
+
+      timerId = setInterval(() => {
+        const transcurrido = (Date.now() - inicio) / 1000;
+        const progreso = Math.min(transcurrido / duracionSeg, 1);
+
+        barraFill.style.width = `${Math.round(progreso * 100)}%`;
+        tiempoTxt.textContent = `Tiempo de visualización: ${Math.min(transcurrido, duracionSeg).toFixed(1)} / ${duracionSeg}s`;
+
+        if (progreso >= 1) {
+          clearInterval(timerId);
+          timerId = null;
+          finalizarConsumo();
+        }
+      }, 100);
+    }
+
+    function finalizarConsumo() {
+      yaTermino = true;
+      panelFinal.innerHTML = `
+        <strong>¿Qué le pareció este título?</strong>
+        <div class="calif">
+          <button class="btnLike" data-like="1">Me gusta</button>
+          <button class="btnLike" data-like="0">No es para mí</button>
+        </div>
+        <p id="respuestaLike" class="respuestaLike"></p>
+      `;
+
+      const respuestaLike = document.getElementById('respuestaLike');
+
+      panelFinal.querySelectorAll('.btnLike').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (!yaTermino) return;
+          yaCalifico = true;
+
+          const like = btn.dataset.like === '1';
+          respuestaLike.textContent = like ? 'Títulos similares que podrían interesarle:' : 'Tomaremos en cuenta su opinión.';
+
+          if (like) mostrarRelacionado(seleccionActual);
+          else relacionadoBox.innerHTML = '';
+        });
+      });
+    }
+
+    function normalizar(str) {
+      return (str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    }
+
+    function compartirTags(a, b) {
+      const A = new Set(a.tags.map(normalizar));
+      return b.tags.some((t) => A.has(normalizar(t)));
+    }
+
+    function mostrarRelacionado(item) {
+      const sugerencias = banco
+        .filter((x) => x.id !== item.id)
+        .map((x) => ({
+          item: x,
+          score: (compartirTags(item, x) ? 3 : 0) + (x.tipo === item.tipo ? 1 : 0)
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map((x) => x.item);
+
+      const nuevosIds = sugerencias.map(r => r.id);
+      let historial = JSON.parse(localStorage.getItem('recomendacionesUsuario') || '[]');
+      
+      historial = [...nuevosIds, ...historial];
+      historial = [...new Set(historial)].slice(0, 6);
+      
+      localStorage.setItem('recomendacionesUsuario', JSON.stringify(historial));
+
+      relacionadoBox.innerHTML = `
+        <div class="slider-peliculas" style="padding-top: 15px;">
+          ${sugerencias.map(r => `<img src="${r.img}" alt="${r.titulo}" class="item-slider" onclick="window.location.href='reproductor.html?id=${r.id}'">`).join('')}
+        </div>
+      `;
+    }
+
+    btnPlay.addEventListener('click', iniciarTimer);
+  </script>
+</body>
+</html>
