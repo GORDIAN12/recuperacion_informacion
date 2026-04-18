@@ -5,14 +5,14 @@
 }
 
 :root {
-    --bg: #141414;
-    --panel: #181818;
-    --text: #e5e5e5;
-    --muted: #808080;
-    --border: #333333;
-    --hover: #2f2f2f;
-    --focus: #e50914;
-    --good: #46d369;
+    --bg: #141414;        
+    --panel: #181818;     
+    --text: #e5e5e5;      
+    --muted: #808080;     
+    --border: #333333;    
+    --hover: #2f2f2f;     
+    --focus: #e50914;     
+    --good: #46d369;      
     --warn: #fbc02d;
     --bad: #e50914;
     --red: #e50914;
@@ -485,23 +485,3 @@ mark {
     margin-bottom: 5px;
     border-radius: 4px;
 }
-
-.analizador{
-    margin-top: 6px;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.pill{
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-    opacity: .95;
-    user-select: none;
-}
-
-.pill-neutral{ opacity: .75; }
-.pill-ok{ }
-.pill-warn{ }
-.pill-err{ }
