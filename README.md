@@ -34,7 +34,7 @@ Nota: Asegúrate de que los datos coincidan con tu configuración local de MySQL
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=Abc456829123.
+DB_PASSWORD=XXXXXXXXXXXXXX
 DB_NAME=netflix_clone
 ```
 Inicialización de la Base de Datos
